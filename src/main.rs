@@ -92,12 +92,14 @@ pub mod days {
 
     pub mod cube_conundrum {
         struct Game {
-            id            : usize,
-            subsets       : Vec<Vec<usize>>,
+            id          : usize,
+            subsets     : Vec<Vec<usize>>,
+            minimum_set : Vec<usize>,
         }
 
-        pub fn sum_possible_games(lines: Vec<String>, reds: usize, greens: usize, blues: usize) -> usize {
+        pub fn sum_possible_games(lines: Vec<String>, reds: usize, greens: usize, blues: usize) -> (usize, usize) {
             let mut sum = 0;
+            let mut sum_power = 0;
             
             for instructions in lines {
                 let game = create_game(instructions);
@@ -114,18 +116,26 @@ pub mod days {
                 if possible {
                     sum += game.id;
                 }
+
+                let mut power = 1;
+                for colors in game.minimum_set {
+                    power *= colors;
+                }
+                sum_power += power;
             }
 
-            return sum;
+            return (sum, sum_power);
         }
 
         fn create_game(instructions: String) -> Game {
             let game_id = get_id(&instructions);
             let game_subsets = get_subsets(&instructions);
+            let minimum_set = get_minimum_set(&game_subsets);
             
             let game = Game {
                 id: game_id,
                 subsets: game_subsets,
+                minimum_set: minimum_set,
             };
 
             return game;
@@ -176,6 +186,24 @@ pub mod days {
             }
             return subsets;
         }
+
+        fn get_minimum_set(subsets: &Vec<Vec<usize>>) -> Vec<usize> {
+            let mut minimum_set = vec![0,0,0];
+            for subset in subsets {
+                if minimum_set[0] < subset[0] {
+                    minimum_set[0] = subset[0];
+                }
+
+                if minimum_set[1] < subset[1] {
+                    minimum_set[1] = subset[1];
+                }
+
+                if minimum_set[2] < subset[2] {
+                    minimum_set[2] = subset[2];
+                }
+            }
+            return minimum_set;
+        }
     }
 }
 
@@ -187,6 +215,6 @@ fn main() {
 
     // Cube Conundrum
     let day2_input = crate::utils::read_input_file("resources/input/day2.txt");
-    let total_day2 = crate::days::cube_conundrum::sum_possible_games(day2_input, 12, 13, 14);
-    println!("Cube Conundrum Total: {total_day2}");
+    let total_day2: (usize, usize) = crate::days::cube_conundrum::sum_possible_games(day2_input, 12, 13, 14);
+    print!("Cube Conundrum Total: {}\n  Power: {}", total_day2.0, total_day2.1);
 }
