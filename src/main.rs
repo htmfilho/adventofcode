@@ -1,5 +1,6 @@
 use adventofcode::utils;
-use adventofcode::days;
+
+mod days;
 
 fn main() {
     // Trebuchet
