@@ -101,10 +101,17 @@ pub mod days {
             
             for instructions in lines {
                 let game = create_game(instructions);
-                let totals = game.calculate_totals();
 
                 // Check if the game is possible
-                if totals[0] <= 12 && totals[1] <= 13 && totals[2] <= 14 {
+                let mut possible = true;
+                for subset in game.subsets {
+                    if subset[0] > reds || subset[1] > greens || subset[2] > blues {
+                        possible = false;
+                        break;
+                    }
+                }
+
+                if possible {
                     sum += game.id;
                 }
             }
@@ -113,10 +120,10 @@ pub mod days {
         }
 
         fn create_game(instructions: String) -> Game {
-            let game_id = get_id(instructions);
-            let game_subsets = get_subsets(instructions);
+            let game_id = get_id(&instructions);
+            let game_subsets = get_subsets(&instructions);
             
-            let mut game = Game {
+            let game = Game {
                 id: game_id,
                 subsets: game_subsets,
             };
@@ -124,18 +131,50 @@ pub mod days {
             return game;
         }
 
-        fn get_id(instructions: String) -> usize {
-
+        fn get_id(instructions: &String) -> usize {
+            let game_parts: Vec<&str> = instructions.split(":").collect();
+            let id_parts: Vec<&str> = game_parts[0].split(" ").collect();
+            let id: usize = id_parts[1].parse().unwrap();
+            return id;
         }
 
-        fn get_subsets(instructions: String) -> Vec<Vec<usize>> {
+        fn get_subsets(instructions: &String) -> Vec<Vec<usize>> {
+            let game_parts: Vec<&str> = instructions.split(":").collect();
+            let subsets_parts: Vec<&str> = game_parts[1].trim().split(";").collect();
+            let mut subsets: Vec<Vec<usize>> = Vec::new(); 
+            
+            //println!("Instructions: {instructions}");
+            for subset_part in subsets_parts {
+                let subset_part_withdout_comma = subset_part.trim().replace(',', "");
+                let cubes_set: Vec<&str> = subset_part_withdout_comma.trim().split(" ").collect();
+                let mut cubes: Vec<usize> = vec![0, 0, 0];
+                let mut color_pos = 1;
 
-        }
+                for _set in &cubes_set {
+                    match cubes_set[color_pos] {
+                        "red" => { 
+                            cubes[0] = cubes_set[color_pos - 1].parse().unwrap();
+                            color_pos += 2;
+                        },
+                        "green" => {
+                            cubes[1] = cubes_set[color_pos - 1].parse().unwrap();
+                            color_pos += 2;
+                        },
+                        "blue" => { 
+                            cubes[2] = cubes_set[color_pos - 1].parse().unwrap();
+                            color_pos += 2;
+                        },
+                        _ => println!("subset: '{subset_part_withdout_comma}'"),
+                    };
 
-        impl Game {
-            fn calculate_totals(&self) -> Vec<usize> {
-
+                    if color_pos > cubes_set.len() {
+                        break;
+                    }
+                }
+                
+                subsets.push(cubes);
             }
+            return subsets;
         }
     }
 }
@@ -147,7 +186,7 @@ fn main() {
     println!("Trebuchet Total: {total_day1}");
 
     // Cube Conundrum
-    let day2_input = create::utils::read_input_file("resources/input/day2.txt");
-    let total_day1 = crate::days::cube_conundrum::sum_possible_games(day2_input, 12, 13, 14);
+    let day2_input = crate::utils::read_input_file("resources/input/day2.txt");
+    let total_day2 = crate::days::cube_conundrum::sum_possible_games(day2_input, 12, 13, 14);
     println!("Cube Conundrum Total: {total_day2}");
 }
